@@ -1,11 +1,46 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>My Server Dashboard</title>
+    <title>Chat System</title>
 </head>
-<body style="font-family: Arial; text-align: center; margin-top: 50px;">
-    <h1>🚀 Flask Server Dashboard</h1>
-    <p>Server is running successfully on Render</p>
-    <p>Status: <b style="color:green;">ONLINE</b></p>
+<body>
+
+<h2>💬 Simple Chat System</h2>
+
+<input id="msg" placeholder="Type message">
+<button onclick="sendMsg()">Send</button>
+
+<div id="chat"></div>
+
+<script>
+async function sendMsg() {
+    let text = document.getElementById("msg").value;
+
+    await fetch("/send", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({text})
+    });
+
+    document.getElementById("msg").value = "";
+    loadMessages();
+}
+
+async function loadMessages() {
+    let res = await fetch("/messages");
+    let data = await res.json();
+
+    let chat = document.getElementById("chat");
+    chat.innerHTML = "";
+
+    data.forEach(m => {
+        chat.innerHTML += "<p>" + m.time + " → " + m.text + "</p>";
+    });
+}
+
+setInterval(loadMessages, 2000);
+loadMessages();
+</script>
+
 </body>
 </html>

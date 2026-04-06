@@ -1,32 +1,31 @@
-from flask import Flask, render_template, send_from_directory
+from flask import Flask, request, jsonify, render_template
+from datetime import datetime
 
 app = Flask(__name__)
 
-@app.route("/")
-def home():
-    return "Server Running"
-
-@app.route("/download/<filename>")
-def download_file(filename):
-    return send_from_directory("uploads", filename, as_attachment=True)
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)from flask import Flask, render_template
-
-app = Flask(__name__)
+messages = []
 
 @app.route("/")
 def home():
     return render_template("index.html")
 
+# Send message
+@app.route("/send", methods=["POST"])
+def send():
+    data = request.get_json()
+
+    msg = {
+        "text": data["text"],
+        "time": datetime.now().strftime("%H:%M:%S")
+    }
+
+    messages.append(msg)
+    return jsonify({"status": "sent"})
+
+# Get messages
+@app.route("/messages")
+def get_messages():
+    return jsonify(messages)
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)from flask import Flask
-
-app = Flask(__name__)
-
-@app.route("/")
-def home():
-    return "Server Working!"
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8000)
+    app.run(host="0.0.0.0", port=10000)
