@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Chat</title>
+</head>
+<body>
+
+<h2>Chat 💗</h2>
+
+<div id="box" style="height:300px;overflow:auto;border:1px solid black"></div>
+
+<input id="msg">
+<button onclick="sendMsg()">Send</button>
+
+<script>
+async function load() {
+    let res = await fetch("/messages");
+    let data = await res.json();
+
+    let box = document.getElementById("box");
+    box.innerHTML = "";
+
+    data.forEach(m => {
+        box.innerHTML += "<p><b>" + m[0] + ":</b> " + m[1] + "</p>";
+    });
+}
+
+async function sendMsg() {
+    let text = document.getElementById("msg").value;
+
+    await fetch("/send", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({text})
+    });
+
+    document.getElementById("msg").value = "";
+    load();
+}
+
+setInterval(load, 2000);
+</script>
+
+</body>
+</html>

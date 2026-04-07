@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Chat App 💗</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial;
+    display: flex;
+    height: 100vh;
+}
+
+/* LEFT PANEL */
+.left {
+    width: 30%;
+    background: #ffe4ec;
+    padding: 10px;
+    overflow-y: auto;
+}
+
+/* RIGHT CHAT */
+.right {
+    width: 70%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* HEADER */
+.header {
+    background: #ff4da6;
+    color: white;
+    padding: 15px;
+}
+
+/* CHAT BOX */
+#chatBox {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+    background: #fff;
+}
+
+/* MESSAGE STYLE */
+.msg {
+    padding: 10px;
+    margin: 5px;
+    border-radius: 10px;
+    max-width: 60%;
+}
+
+.me {
+    background: #ffb3d9;
+    margin-left: auto;
+}
+
+.other {
+    background: #eee;
+}
+
+/* INPUT AREA */
+.bottom {
+    display: flex;
+}
+
+input {
+    flex: 1;
+    padding: 15px;
+    border: none;
+}
+
+button {
+    padding: 10px;
+    border: none;
+    background: #ff4da6;
+    color: white;
+}
+
+.user {
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+}
+</style>
+
+</head>
+
+<body>
+
+<!-- LEFT SIDE -->
+<div class="left">
+    <h3>Users 👥</h3>
+    <div id="users"></div>
+
+    <h4>Requests 📩</h4>
+    <div id="requests"></div>
+</div>
+
+<!-- RIGHT SIDE -->
+<div class="right">
+    <div class="header" id="chatHeader">Select user</div>
+
+    <div id="chatBox"></div>
+
+    <div class="bottom">
+        <input id="msg" placeholder="Type message...">
+        <button onclick="sendMsg()">Send</button>
+    </div>
+</div>
+
+<script>
+let currentUser = "";
+
+// LOAD USERS
+async function loadUsers() {
+    let res = await fetch("/users");
+    let data = await res.json();
+
+    let div = document.getElementById("users");
+    div.innerHTML = "";
+
+    data.forEach(u => {
+        div.innerHTML += `
+        <div class="user">
+            ${u}
+            <button onclick="selectUser('${u}')">Chat</button>
+            <button onclick="sendReq('${u}')">Req</button>
+        </div>`;
+    });
+}
+
+// SELECT USER
+function selectUser(u) {
+    currentUser = u;
+    document.getElementById("chatHeader").innerText = u;
+    loadChat();
+}
+
+// LOAD CHAT
+async function loadChat() {
+    if (!currentUser) return;
+
+    let res = await fetch("/get_private/" + currentUser);
+    let data = await res.json();
+
+    let box = document.getElementById("chatBox");
+    box.innerHTML = "";
+
+    data.forEach(m => {
+        let div = document.createElement("div");
+        div.classList.add("msg");
+
+        if (m[0] === currentUser) {
+            div.classList.add("other");
+        } else {
+            div.classList.add("me");
+        }
+
+        div.innerText = m[1];
+        box.appendChild(div);
+    });
+
+    box.scrollTop = box.scrollHeight;
+}
+
+// SEND MESSAGE
+async function sendMsg() {
+    let text = document.getElementById("msg").value;
+
+    await fetch("/send_private", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({to: currentUser, text})
+    });
+
+    document.getElementById("msg").value = "";
+    loadChat();
+}
+
+// SEND REQUEST
+async function sendReq(u) {
+    await fetch("/send_request", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({to: u})
+    });
+    alert("Request sent");
+}
+
+// LOAD REQUESTS
+async function loadReq() {
+    let res = await fetch("/my_requests");
+    let data = await res.json();
+
+    let div = document.getElementById("requests");
+    div.innerHTML = "";
+
+    data.forEach(u => {
+        div.innerHTML += `
+        <div>
+            ${u}
+            <button onclick="accept('${u}')">Accept</button>
+        </div>`;
+    });
+}
+
+// ACCEPT
+async function accept(u) {
+    await fetch("/accept_request", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({from: u})
+    });
+    loadReq();
+}
+
+setInterval(loadChat, 2000);
+loadUsers();
+loadReq();
+</script>
+
+</body>
+</html>

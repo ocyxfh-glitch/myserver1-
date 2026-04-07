@@ -1,0 +1,37 @@
+<h2>Chat with {{other}}</h2>
+
+<div id="box"></div>
+
+<input id="msg">
+<button onclick="sendMsg()">Send</button>
+
+<script>
+let other = "{{other}}";
+
+async function load() {
+    let res = await fetch("/get_private/" + other);
+    let data = await res.json();
+
+    let box = document.getElementById("box");
+    box.innerHTML = "";
+
+    data.forEach(m => {
+        box.innerHTML += "<p><b>" + m[0] + ":</b> " + m[1] + "</p>";
+    });
+}
+
+async function sendMsg() {
+    let text = document.getElementById("msg").value;
+
+    await fetch("/send_private", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({to: other, text})
+    });
+
+    document.getElementById("msg").value = "";
+    load();
+}
+
+setInterval(load, 2000);
+</script>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Groups 💗</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #ffe4ec;
+            text-align: center;
+        }
+
+        h2 {
+            background: #e91e63;
+            color: white;
+            padding: 15px;
+        }
+
+        .box {
+            background: white;
+            margin: 10px auto;
+            padding: 10px;
+            width: 80%;
+            border-radius: 10px;
+        }
+
+        input {
+            padding: 8px;
+            width: 60%;
+        }
+
+        button {
+            padding: 8px;
+            background: #e91e63;
+            color: white;
+            border: none;
+        }
+
+        a {
+            text-decoration: none;
+            color: #e91e63;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+<h2>💗 Groups</h2>
+
+<div class="box">
+    <form method="POST" action="/create_group">
+        <input name="name" placeholder="Enter group name">
+        <button>Create</button>
+    </form>
+</div>
+
+{% for g in groups %}
+    <div class="box">
+        <a href="/group/{{g[0]}}">{{g[1]}}</a>
+    </div>
+{% endfor %}
+
+<br>
+<a href="/">⬅ Back to Chat</a>
+
+</body>
+</html>

@@ -1,25 +1,142 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Chat System</title>
+    <title>Chat 💗</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial;
+            display: flex;
+            height: 100vh;
+        }
+
+        /* LEFT PANEL */
+        #left {
+            width: 30%;
+            background: #ffe4ec;
+            padding: 10px;
+            overflow-y: auto;
+        }
+
+        #left h3 {
+            text-align: center;
+        }
+
+        .group {
+            background: white;
+            margin: 5px;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        /* RIGHT PANEL */
+        #right {
+            width: 70%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: #e91e63;
+            color: white;
+            padding: 15px;
+        }
+
+        #chat {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+            background: #fff0f5;
+        }
+
+        .msg {
+            background: white;
+            padding: 10px;
+            margin: 5px;
+            border-radius: 10px;
+        }
+
+        .input-box {
+            padding: 10px;
+            background: #fff;
+        }
+
+        input {
+            padding: 8px;
+        }
+
+        #msg {
+            width: 60%;
+        }
+
+        button {
+            padding: 8px;
+            background: #e91e63;
+            color: white;
+            border: none;
+        }
+    </style>
 </head>
+
 <body>
 
-<h2>💬 Simple Chat System</h2>
+<!-- LEFT SIDE -->
+<div id="left">
 
-<input id="msg" placeholder="Type message">
-<button onclick="sendMsg()">Send</button>
+    <h3>💗 Groups</h3>
+
+    <form method="POST" action="/create_group">
+        <input name="name" placeholder="New group">
+        <button>Create</button>
+    </form>
+
+    <hr>
+
+    {% for g in groups %}
+        <div class="group" onclick="openGroup({{g[0]}})">
+            {{g[1]}}
+        </div>
+    {% endfor %}
+
+</div>
+
+<!-- RIGHT SIDE -->
+<div id="right">
+
+<header>💬 Chat</header>
 
 <div id="chat"></div>
 
+<div class="input-box">
+    <input id="msg" placeholder="Type message">
+    <button onclick="sendMsg()">Send</button>
+</div>
+
+</div>
+
 <script>
+
+let currentGroup = null;
+
+function openGroup(id) {
+    currentGroup = id;
+    loadMessages();
+}
+
 async function sendMsg() {
+    if (!currentGroup) {
+        alert("Select group first");
+        return;
+    }
+
     let text = document.getElementById("msg").value;
 
-    await fetch("/send", {
+    await fetch("/send_group", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({text})
+        body: JSON.stringify({text, group_id: currentGroup})
     });
 
     document.getElementById("msg").value = "";
@@ -27,19 +144,26 @@ async function sendMsg() {
 }
 
 async function loadMessages() {
-    let res = await fetch("/messages");
+    if (!currentGroup) return;
+
+    let res = await fetch("/group_messages/" + currentGroup);
     let data = await res.json();
 
     let chat = document.getElementById("chat");
     chat.innerHTML = "";
 
-    data.forEach(m => {
-        chat.innerHTML += "<p>" + m.time + " → " + m.text + "</p>";
+    data.reverse().forEach(m => {
+        chat.innerHTML += `
+            <div class="msg">
+                <b>${m.user}</b><br>
+                ${m.text}
+            </div>
+        `;
     });
 }
 
 setInterval(loadMessages, 2000);
-loadMessages();
+
 </script>
 
 </body>
